@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>픽셀 희귀 동물 키우기</title>
+    <!-- 구글 픽셀 스타일 폰트 로드 -->
+    <link href="https://fonts.googleapis.com/css2?family=DungGeunMo&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <!-- 테일윈드 CSS 로드 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        pixel: ['DungGeunMo', 'monospace'],
+                        englishPixel: ['"Press Start 2P"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'DungGeunMo', sans-serif;
+            background-color: #111827;
+            background-image: radial-gradient(#1f2937 1px, transparent 1px);
+            background-size: 16px 16px;
+            image-rendering: pixelated;
+        }
+
+        /* 네스호/네트로 테두리 스타일 */
+        .pixel-border {
+            border: 4px solid #000;
+            box-shadow: 
+                -4px 0 #000, 4px 0 #000, 0 -4px #000, 0 4px #000,
+                0 0 0 4px #fff inset,
+                4px 4px 0px rgba(0,0,0,0.15);
+        }
+
+        .pixel-border-button {
+            position: relative;
+            border: 4px solid #000;
+            box-shadow: -4px 0 #000, 4px 0 #000, 0 -4px #000, 0 4px #000;
+            transition: all 0.1s ease;
+        }
+
+        .pixel-border-button:active {
+            transform: translate(2px, 2px);
+            box-shadow: -2px 0 #000, 2px 0 #000, 0 -2px #000, 0 2px #000;
+        }
+
+        /* 미세한 둥둥 뜨는 애니메이션 */
+        @keyframes float {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-8px) scale(1.02); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* 갉아먹는 애니메이션 */
+        @keyframes eat {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.15) rotate(5deg); }
+            60% { transform: scale(0.95) rotate(-5deg); }
+            100% { transform: scale(1); }
+        }
+
+        .eat-animation {
+            animation: eat 0.5s ease-in-out;
+        }
+
+        /* 픽셀 로딩바 디자인 */
+        .pixel-bar-container {
+            border: 3px solid #000;
+            height: 24px;
+            padding: 2px;
+            background: #222;
+        }
+
+        .pixel-bar-inner {
+            height: 100%;
+            transition: width 0.3s steps(10);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md bg-zinc-800 text-white pixel-border p-6 flex flex-col items-center select-none">
+        
+        <!-- 게임 헤더 -->
+        <div class="text-center mb-6 w-full border-b-4 border-black pb-4">
+            <h1 class="text-2xl font-bold tracking-wider text-yellow-400 font-pixel">👾 PIXEL RARE PETS 👾</h1>
+            <p class="text-xs text-zinc-400 mt-1">멸종위기 희귀 동물들을 당신의 도트 감성으로 보살펴주세요!</p>
+        </div>
+
+        <div id="selection-screen" class="w-full block">
+            <h2 class="text-lg text-center text-emerald-400 mb-4 font-pixel">어떤 희귀 동물을 입양하시겠습니까?</h2>
+            
+            <div class="grid grid-cols-2 gap-4" id="animal-cards-container">
+                <!-- 사이가 산양 -->
+                <button onclick="startGame('사이가산양')" class="flex flex-col items-center bg-zinc-700 p-3 pixel-border-button hover:bg-zinc-600 transition-colors">
+                    <div class="w-24 h-24 flex items-center justify-center bg-zinc-800 border-2 border-black mb-2 overflow-hidden">
+                        <!-- 사이가 산양 SVG 도트 -->
+                        <svg class="w-20 h-20" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                            <!-- Background/Body -->
+                            <rect x="5" y="8" width="8" height="6" fill="#D2B48C" />
+                            <rect x="4" y="5" width="4" height="4" fill="#E6C29E" />
+                            <!-- Horns (사이가 특유의 뿔) -->
+                            <rect x="4" y="1" width="1" height="4" fill="#7F5F3F" />
+                            <rect x="6" y="2" width="1" height="3" fill="#7F5F3F" />
+                            <!-- Huge Nose (사이가산양의 특징적인 코) -->
+                            <rect x="2" y="7" width="3" height="3" fill="#C19A6B" />
+                            <rect x="2" y="9" width="2" height="1" fill="#4A3B32" />
+                            <!-- Legs -->
+                            <rect x="6" y="14" width="1" height="2" fill="#5C4033" />
+                            <rect x="8" y="14" width="1" height="2" fill="#5C4033" />
+                            <rect x="11" y="14" width="1" height="2" fill="#5C4033" />
+                            <!-- Eye -->
+                            <rect x="5" y="6" width="1" height="1" fill="#000" />
+                            <!-- Tail -->
+                            <rect x="13" y="9" width="1" height="2" fill="#7F5F3F" />
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold text-yellow-300">사이가 산양</span>
+                    <span class="text-[10px] text-zinc-300 mt-1">#독특한코 #초원</span>
+                </button>
+
+                <!-- 필리핀 독수리 -->
+                <button onclick="startGame('필리핀독수리')" class="flex flex-col items-center bg-zinc-700 p-3 pixel-border-button hover:bg-zinc-600 transition-colors">
+                    <div class="w-24 h-24 flex items-center justify-center bg-zinc-800 border-2 border-black mb-2 overflow-hidden">
+                        <!-- 필리핀 독수리 SVG 도트 -->
+                        <svg class="w-20 h-20" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                            <!-- Body -->
+                            <rect x="5" y="7" width="7" height="6" fill="#8B5A2B" />
+                            <!-- Crest (독수리 깃털 갈기) -->
+                            <rect x="4" y="3" width="7" height="4" fill="#CD853F" />
+                            <rect x="3" y="4" width="2" height="2" fill="#3D2314" />
+                            <!-- Face -->
+                            <rect x="4" y="5" width="4" height="4" fill="#F5F5DC" />
+                            <!-- Big Beak (부리) -->
+                            <rect x="1" y="6" width="3" height="3" fill="#4B6584" />
+                            <rect x="2" y="8" width="2" height="1" fill="#1C2833" />
+                            <!-- Eye -->
+                            <rect x="5" y="6" width="1" height="1" fill="#000" />
+                            <!-- Tail & Wings -->
+                            <rect x="12" y="9" width="2" height="3" fill="#3D2314" />
+                            <!-- Feet -->
+                            <rect x="6" y="13" width="1" height="2" fill="#FFD700" />
+                            <rect x="10" y="13" width="1" height="2" fill="#FFD700" />
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold text-yellow-300">필리핀 독수리</span>
+                    <span class="text-[10px] text-zinc-300 mt-1">#거대한부리 #정글</span>
+                </button>
+
+                <!-- 아홀로틀 (우파루파) -->
+                <button onclick="startGame('아홀로틀')" class="flex flex-col items-center bg-zinc-700 p-3 pixel-border-button hover:bg-zinc-600 transition-colors">
+                    <div class="w-24 h-24 flex items-center justify-center bg-zinc-800 border-2 border-black mb-2 overflow-hidden">
+                        <!-- 아홀로틀 SVG 도트 -->
+                        <svg class="w-20 h-20" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                            <!-- Body -->
+                            <rect x="4" y="7" width="8" height="6" fill="#FFB6C1" />
+                            <!-- Head -->
+                            <rect x="5" y="4" width="6" height="4" fill="#FFC0CB" />
+                            <!-- Gills (깃털 아가미) -->
+                            <rect x="3" y="3" width="2" height="2" fill="#FF1493" />
+                            <rect x="3" y="6" width="2" height="2" fill="#FF1493" />
+                            <rect x="11" y="3" width="2" height="2" fill="#FF1493" />
+                            <rect x="11" y="6" width="2" height="2" fill="#FF1493" />
+                            <!-- Eyes -->
+                            <rect x="6" y="5" width="1" height="1" fill="#000" />
+                            <rect x="9" y="5" width="1" height="1" fill="#000" />
+                            <!-- Tail -->
+                            <rect x="12" y="9" width="3" height="3" fill="#FFB6C1" />
+                            <rect x="13" y="10" width="2" height="1" fill="#FF1493" />
+                            <!-- Legs -->
+                            <rect x="5" y="13" width="1" height="2" fill="#FFC0CB" />
+                            <rect x="10" y="13" width="1" height="2" fill="#FFC0CB" />
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold text-yellow-300">아홀로틀</span>
+                    <span class="text-[10px] text-zinc-300 mt-1">#우파루파 #귀요미</span>
+                </button>
+
+                <!-- 일리피카 -->
+                <button onclick="startGame('일리피카')" class="flex flex-col items-center bg-zinc-700 p-3 pixel-border-button hover:bg-zinc-600 transition-colors">
+                    <div class="w-24 h-24 flex items-center justify-center bg-zinc-800 border-2 border-black mb-2 overflow-hidden">
+                        <!-- 일리피카 SVG 도트 -->
+                        <svg class="w-20 h-20" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                            <!-- Body (Grayish) -->
+                            <rect x="4" y="8" width="7" height="6" fill="#8E8B82" />
+                            <rect x="6" y="9" width="4" height="2" fill="#A0522D" /> <!-- Rust spot -->
+                            <!-- Head -->
+                            <rect x="5" y="4" width="6" height="5" fill="#8E8B82" />
+                            <rect x="6" y="6" width="4" height="3" fill="#D3D3D3" /> <!-- Face -->
+                            <!-- Ears -->
+                            <rect x="3" y="2" width="3" height="3" fill="#8E8B82" />
+                            <rect x="4" y="3" width="1" height="1" fill="#A0522D" />
+                            <rect x="10" y="2" width="3" height="3" fill="#8E8B82" />
+                            <rect x="11" y="3" width="1" height="1" fill="#A0522D" />
+                            <!-- Face Details -->
+                            <rect x="6" y="6" width="1" height="1" fill="#000" /> <!-- Eye -->
+                            <rect x="9" y="6" width="1" height="1" fill="#000" /> <!-- Eye -->
+                            <rect x="7" y="7" width="2" height="1" fill="#000" /> <!-- Nose/Mouth -->
+                            <!-- Legs -->
+                            <rect x="5" y="14" width="2" height="1" fill="#696969" />
+                            <rect x="9" y="14" width="2" height="1" fill="#696969" />
+                        </svg>
+                    </div>
+                    <span class="text-sm font-bold text-yellow-300">일리피카</span>
+                    <span class="text-[10px] text-zinc-300 mt-1">#마법의토끼 #테디베어</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="game-screen" class="w-full hidden">
+            
+            <!-- 상단 상태바 (재화 및 일차 정보) -->
+            <div class="flex justify-between items-center text-xs mb-4 bg-zinc-900 p-2 border-2 border-black font-pixel">
+                <div>🌳 DAY <span id="game-days" class="text-emerald-400 font-bold">1</span></div>
+                <div class="flex items-center gap-1">💰 <span id="game-coins" class="text-yellow-400 font-bold">100</span> G</div>
+                <div>🧬 진화도 <span id="evo-stage" class="text-blue-400 font-bold">아기(Lv.1)</span></div>
+            </div>
+
+            <!-- 메인 캐릭터 전시관 -->
+            <div class="w-full bg-zinc-900 border-4 border-black p-4 flex flex-col items-center justify-center relative mb-6">
+                <!-- 말풍선 시스템 -->
+                <div id="pet-bubble" class="absolute top-2 left-4 right-4 bg-white text-black text-xs font-bold py-1 px-3 border-2 border-black rounded-lg text-center opacity-0 transition-opacity duration-300">
+                    안녕! 나랑 놀아줘!
+                </div>
+
+                <h2 id="pet-name" class="text-xl font-bold text-yellow-400 font-pixel mt-6 mb-3">동물이름 키우기</h2>
+                
+                <!-- 캐릭터 그래픽 컨테이너 -->
+                <div id="pet-display-box" class="w-40 h-40 flex items-center justify-center float-animation bg-zinc-800 border-2 border-black p-2 my-2">
+                    <!-- 선택된 동물의 SVG 그래픽이 동적으로 주입됨 -->
+                </div>
+
+                <div class="text-[11px] text-zinc-400 mt-2 text-center" id="status-comment">
+                    우리 아기는 무럭무럭 자라는 중입니다!
+                </div>
+            </div>
+
+            <div class="space-y-3 mb-6">
+                <!-- 포만감 -->
+                <div>
+                    <div class="flex justify-between text-xs font-pixel mb-1">
+                        <span>🍖 포만감</span>
+                        <span id="hunger-text">50 / 100</span>
+                    </div>
+                    <div class="pixel-bar-container">
+                        <div id="hunger-fill" class="pixel-bar-inner bg-red-500" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- 행복도 -->
+                <div>
+                    <div class="flex justify-between text-xs font-pixel mb-1">
+                        <span>❤️ 행복도</span>
+                        <span id="happiness-text">50 / 100</span>
+                    </div>
+                    <div class="pixel-bar-container">
+                        <div id="happiness-fill" class="pixel-bar-inner bg-amber-400" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- 에너지 -->
+                <div>
+                    <div class="flex justify-between text-xs font-pixel mb-1">
+                        <span>⚡ 에너지</span>
+                        <span id="energy-text">50 / 100</span>
+                    </div>
+                    <div class="pixel-bar-container">
+                        <div id="energy-fill" class="pixel-bar-inner bg-sky-400" style="width: 50%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <button onclick="feedMenu()" class="pixel-border-button bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 text-sm">
+                    🍖 먹이 주기
+                </button>
+                <button onclick="playWithPet()" class="pixel-border-button bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 text-sm">
+                    🎾 놀아주기
+                </button>
+                <button onclick="sleepPet()" class="pixel-border-button bg-indigo-700 hover:bg-indigo-600 text-white font-bold py-2 text-sm col-span-2">
+                    💤 피로 회복 (잠자기)
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="startMiniGame()" class="pixel-border-button bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 text-xs">
+                    🕹️ 알바 게임하기
+                </button>
+                <button onclick="showInfo()" class="pixel-border-button bg-zinc-600 hover:bg-zinc-500 text-white font-bold py-2 text-xs">
+                    📖 종(Species) 정보
+                </button>
+            </div>
+        </div>
+
+        <div id="minigame-screen" class="w-full hidden text-center">
+            <h2 class="text-lg text-yellow-400 mb-2 font-pixel">🥕 픽셀 당근 밟기 알바</h2>
+            <p class="text-xs text-zinc-300 mb-4">화면 하단에 일치하는 화살표를 타이밍 좋게 탭하세요!</p>
+            
+            <div class="bg-zinc-900 border-4 border-black p-4 mb-4">
+                <div class="text-xs text-zinc-400 mb-2">남은 횟수: <span id="game-turns" class="text-white">10</span></div>
+                <div class="text-3xl font-englishPixel text-center text-emerald-400 tracking-wider my-4" id="target-pattern">
+                    ←
+                </div>
+                <div class="text-xs text-zinc-400" id="game-feedback">대기중...</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 mb-4">
+                <button onclick="pressKey('LEFT')" class="pixel-border-button bg-zinc-700 hover:bg-zinc-600 font-bold py-3 text-lg font-pixel">◀ LEFT</button>
+                <button onclick="pressKey('RIGHT')" class="pixel-border-button bg-zinc-700 hover:bg-zinc-600 font-bold py-3 text-lg font-pixel">RIGHT ▶</button>
+            </div>
+            
+            <button onclick="exitMiniGame()" class="pixel-border-button bg-red-600 hover:bg-red-500 text-white font-bold py-1 px-4 text-xs">
+                포기하고 나가기
+            </button>
+        </div>
+
+    </div>
+
+    <div id="feed-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
+        <div class="w-full max-w-xs bg-zinc-800 text-white pixel-border p-4">
+            <h3 class="text-center text-yellow-400 font-pixel mb-3">🍖 먹이 선택 상점</h3>
+            <div class="space-y-2 mb-4">
+                <button onclick="buyFood('일반 사료', 0, 15, -5)" class="w-full flex justify-between items-center bg-zinc-700 p-2 border-2 border-black hover:bg-zinc-600 text-xs text-left">
+                    <span>🌾 일반 사료 (무료)</span>
+                    <span class="text-emerald-400 font-bold">+15 포만</span>
+                </button>
+                <button onclick="buyFood('특제 도트 비스킷', 15, 35, -10)" class="w-full flex justify-between items-center bg-zinc-700 p-2 border-2 border-black hover:bg-zinc-600 text-xs text-left">
+                    <span>🍪 특제 비스킷 (15G)</span>
+                    <span class="text-emerald-400 font-bold">+35 포만</span>
+                </button>
+                <button onclick="buyFood('유기농 천연 열매', 30, 60, -15)" class="w-full flex justify-between items-center bg-zinc-700 p-2 border-2 border-black hover:bg-zinc-600 text-xs text-left">
+                    <span>🍒 유기농 열매 (30G)</span>
+                    <span class="text-emerald-400 font-bold">+60 포만</span>
+                </button>
+            </div>
+            <button onclick="closeFeedMenu()" class="w-full pixel-border-button bg-red-600 text-white text-xs py-1">닫기</button>
+        </div>
+    </div>
+
+    <div id="info-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
+        <div class="w-full max-w-sm bg-zinc-800 text-white pixel-border p-5">
+            <h3 class="text-center text-emerald-400 font-pixel text-lg mb-2" id="info-title">희귀 동물 정보</h3>
+            <p class="text-xs text-zinc-300 leading-relaxed mb-4 border-t border-zinc-700 pt-3" id="info-desc">
+                정보를 불러오는 중입니다...
+            </p>
+            <button onclick="closeInfo()" class="w-full pixel-border-button bg-zinc-600 hover:bg-zinc-500 text-white text-xs py-2">확인</button>
+        </div>
+    </div>
+
+    <div id="alert-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 hidden z-50">
+        <div class="w-full max-w-xs bg-zinc-900 text-white pixel-border p-4 text-center">
+            <div class="text-yellow-400 text-sm font-pixel mb-3" id="alert-title">📢 알림</div>
+            <p class="text-xs text-zinc-200 mb-4" id="alert-message">메시지 내용</p>
+            <button onclick="closeAlert()" id="alert-confirm-btn" class="pixel-border-button bg-emerald-600 hover:bg-emerald-500 px-6 py-1 text-xs">확인</button>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        const PET_GRAPHICS = {
+            '사이가산양': {
+                lvl1: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="6" y="9" width="5" height="4" fill="#D2B48C" />
+                    <rect x="5" y="7" width="3" height="3" fill="#E6C29E" />
+                    <rect x="5" y="3" width="1" height="4" fill="#7F5F3F" />
+                    <rect x="3" y="8" width="2" height="2" fill="#C19A6B" />
+                    <rect x="7" y="13" width="1" height="1" fill="#5C4033" />
+                    <rect x="9" y="13" width="1" height="1" fill="#5C4033" />
+                    <rect x="6" y="8" width="1" height="1" fill="#000" />
+                </svg>`,
+                lvl2: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="5" y="8" width="7" height="5" fill="#D2B48C" />
+                    <rect x="4" y="6" width="4" height="4" fill="#E6C29E" />
+                    <rect x="4" y="2" width="1" height="4" fill="#7F5F3F" />
+                    <rect x="6" y="3" width="1" height="3" fill="#7F5F3F" />
+                    <rect x="2" y="7" width="3" height="3" fill="#C19A6B" />
+                    <rect x="6" y="13" width="1" height="2" fill="#5C4033" />
+                    <rect x="8" y="13" width="1" height="2" fill="#5C4033" />
+                    <rect x="10" y="13" width="1" height="2" fill="#5C4033" />
+                    <rect x="5" y="7" width="1" height="1" fill="#000" />
+                    <rect x="12" y="9" width="1" height="2" fill="#7F5F3F" />
+                </svg>`,
+                lvl3: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="5" y="7" width="9" height="7" fill="#C19A6B" />
+                    <rect x="4" y="4" width="5" height="5" fill="#D2B48C" />
+                    <rect x="4" y="0" width="1" height="5" fill="#5C4033" />
+                    <rect x="6" y="0" width="1" height="4" fill="#5C4033" />
+                    <rect x="1" y="6" width="4" height="4" fill="#A0522D" />
+                    <rect x="6" y="14" width="1" height="2" fill="#3D2314" />
+                    <rect x="8" y="14" width="1" height="2" fill="#3D2314" />
+                    <rect x="11" y="14" width="1" height="2" fill="#3D2314" />
+                    <rect x="13" y="14" width="1" height="2" fill="#3D2314" />
+                    <rect x="5" y="5" width="1" height="1" fill="#000" />
+                    <rect x="14" y="8" width="1" height="3" fill="#5C4033" />
+                </svg>`
+            },
+            '필리핀독수리': {
+                lvl1: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="6" y="8" width="5" height="5" fill="#8B5A2B" />
+                    <rect x="5" y="5" width="4" height="4" fill="#CD853F" />
+                    <rect x="3" y="6" width="2" height="2" fill="#4B6584" />
+                    <rect x="6" y="6" width="1" height="1" fill="#000" />
+                    <rect x="7" y="13" width="1" height="1" fill="#FFD700" />
+                    <rect x="9" y="13" width="1" height="1" fill="#FFD700" />
+                </svg>`,
+                lvl2: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="5" y="7" width="7" height="6" fill="#8B5A2B" />
+                    <rect x="4" y="3" width="7" height="4" fill="#CD853F" />
+                    <rect x="1" y="6" width="3" height="3" fill="#4B6584" />
+                    <rect x="5" y="5" width="1" height="1" fill="#000" />
+                    <rect x="6" y="13" width="1" height="2" fill="#FFD700" />
+                    <rect x="10" y="13" width="1" height="2" fill="#FFD700" />
+                </svg>`,
+                lvl3: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="4" y="6" width="8" height="8" fill="#5C4033" />
+                    <rect x="3" y="1" width="9" height="6" fill="#CD853F" />
+                    <rect x="1" y="2" width="2" height="4" fill="#3D2314" />
+                    <rect x="11" y="2" width="2" height="4" fill="#3D2314" />
+                    <rect x="3" y="4" width="5" height="5" fill="#F5F5DC" />
+                    <rect x="0" y="5" width="3" height="4" fill="#2F4F4F" />
+                    <rect x="5" y="5" width="1" height="1" fill="#000" />
+                    <rect x="5" y="14" width="2" height="2" fill="#FFD700" />
+                    <rect x="9" y="14" width="2" height="2" fill="#FFD700" />
+                </svg>`
+            },
+            '아홀로틀': {
+                lvl1: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="5" y="9" width="6" height="4" fill="#FFB6C1" />
+                    <rect x="6" y="6" width="4" height="3" fill="#FFC0CB" />
+                    <rect x="4" y="6" width="1" height="2" fill="#FF1493" />
+                    <rect x="11" y="6" width="1" height="2" fill="#FF1493" />
+                    <rect x="7" y="7" width="1" height="1" fill="#000" />
+                    <rect x="9" y="7" width="1" height="1" fill="#000" />
+                </svg>`,
+                lvl2: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="4" y="7" width="8" height="6" fill="#FFB6C1" />
+                    <rect x="5" y="4" width="6" height="4" fill="#FFC0CB" />
+                    <rect x="3" y="3" width="2" height="2" fill="#FF1493" />
+                    <rect x="3" y="6" width="2" height="2" fill="#FF1493" />
+                    <rect x="11" y="3" width="2" height="2" fill="#FF1493" />
+                    <rect x="11" y="6" width="2" height="2" fill="#FF1493" />
+                    <rect x="6" y="5" width="1" height="1" fill="#000" />
+                    <rect x="9" y="5" width="1" height="1" fill="#000" />
+                    <rect x="12" y="9" width="3" height="3" fill="#FFB6C1" />
+                    <rect x="5" y="13" width="1" height="2" fill="#FFC0CB" />
+                    <rect x="10" y="13" width="1" height="2" fill="#FFC0CB" />
+                </svg>`,
+                lvl3: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="3" y="6" width="10" height="7" fill="#FF69B4" />
+                    <rect x="4" y="2" width="8" height="5" fill="#FFB6C1" />
+                    <rect x="1" y="1" width="3" height="3" fill="#FF1493" />
+                    <rect x="1" y="4" width="3" height="3" fill="#FF1493" />
+                    <rect x="12" y="1" width="3" height="3" fill="#FF1493" />
+                    <rect x="12" y="4" width="3" height="3" fill="#FF1493" />
+                    <rect x="5" y="3" width="1" height="1" fill="#000" />
+                    <rect x="10" y="3" width="1" height="1" fill="#000" />
+                    <rect x="6" y="5" width="4" height="1" fill="#FF69B4" />
+                    <rect x="13" y="7" width="3" height="5" fill="#FF1493" />
+                    <rect x="4" y="13" width="2" height="2" fill="#FFB6C1" />
+                    <rect x="10" y="13" width="2" height="2" fill="#FFB6C1" />
+                </svg>`
+            },
+            '일리피카': {
+                lvl1: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="5" y="9" width="6" height="5" fill="#8E8B82" />
+                    <rect x="6" y="6" width="4" height="4" fill="#D3D3D3" />
+                    <rect x="4" y="4" width="2" height="3" fill="#8E8B82" />
+                    <rect x="10" y="4" width="2" height="3" fill="#8E8B82" />
+                    <rect x="6" y="7" width="1" height="1" fill="#000" />
+                    <rect x="9" y="7" width="1" height="1" fill="#000" />
+                    <rect x="7" y="8" width="2" height="1" fill="#000" />
+                </svg>`,
+                lvl2: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="4" y="8" width="8" height="6" fill="#8E8B82" />
+                    <rect x="6" y="9" width="3" height="3" fill="#A0522D" />
+                    <rect x="5" y="4" width="6" height="5" fill="#8E8B82" />
+                    <rect x="6" y="6" width="4" height="3" fill="#D3D3D3" />
+                    <rect x="3" y="2" width="2" height="3" fill="#8E8B82" />
+                    <rect x="11" y="2" width="2" height="3" fill="#8E8B82" />
+                    <rect x="6" y="6" width="1" height="1" fill="#000" />
+                    <rect x="9" y="6" width="1" height="1" fill="#000" />
+                    <rect x="7" y="7" width="2" height="1" fill="#000" />
+                    <rect x="5" y="14" width="2" height="1" fill="#696969" />
+                    <rect x="9" y="14" width="2" height="1" fill="#696969" />
+                </svg>`,
+                lvl3: `<svg class="w-32 h-32" viewBox="0 0 16 16" shape-rendering="crispEdges">
+                    <rect x="3" y="7" width="10" height="7" fill="#8E8B82" />
+                    <rect x="4" y="8" width="4" height="4" fill="#A0522D" />
+                    <rect x="9" y="9" width="3" height="3" fill="#A0522D" />
+                    <rect x="4" y="3" width="8" height="6" fill="#8E8B82" />
+                    <rect x="5" y="5" width="6" height="4" fill="#D3D3D3" />
+                    <rect x="2" y="1" width="3" height="4" fill="#8E8B82" />
+                    <rect x="3" y="2" width="1" height="2" fill="#A0522D" />
+                    <rect x="11" y="1" width="3" height="4" fill="#8E8B82" />
+                    <rect x="12" y="2" width="1" height="2" fill="#A0522D" />
+                    <rect x="6" y="5" width="1" height="1" fill="#000" />
+                    <rect x="9" y="5" width="1" height="1" fill="#000" />
+                    <rect x="7" y="6" width="2" height="1" fill="#000" />
+                    <rect x="7" y="7" width="2" height="1" fill="#D3D3D3" />
+                    <rect x="4" y="14" width="2" height="2" fill="#696969" />
+                    <rect x="10" y="14" width="2" height="2" fill="#696969" />
+                </svg>`
+            }
+        };
+
+        const PET_INFOS = {
+            '사이가산양': '중앙아시아 초원에 서식하는 사이가산양은 마치 스타워즈의 외계 생물 같은 기괴하고 거대한 코를 가지고 있습니다. 이 코는 먼지를 걸러내고 겨울철 공기를 데우는 중요한 역할을 하지만 밀렵과 기후 변화로 심각한 멸종 위기에 처해 있습니다.',
+            '필리핀독수리': '세계에서 가장 거대하고 강력한 날개를 가진 맹금류 중 하나입니다. 필리핀의 열대 우림을 상징하며, 정수리의 화려하고 거대한 갈기 깃털이 특징적입니다. 서식지 파괴로 현재 전 세계에 불과 수백 마리만 야생에 생존해 있습니다.',
+            '아홀로틀': '멕시코가 원산지인 독특한 도롱뇽으로, 다 자라도 올챙이 시절의 아가미를 잃지 않는 독특한 특징이 있습니다. 상처가 나면 심장조차도 완벽하게 재생하는 초월적 생명력을 지녔으나 야생 수질 오염으로 멸종 위기 직전에 처해있습니다.',
+            '일리피카': '중국 톈산산맥에 서식하는 일리피카는 마치 테디베어를 닮은 귀여운 외모로 "마법의 토끼"라고도 불립니다. 1983년에 처음 발견되었으며, 기후 변화와 서식지 파괴로 인해 개체 수가 급감하여 전 세계에 1,000마리도 남지 않은 심각한 멸종 위기종입니다.'
+        };
+
+        const PET_SAYINGS = [
+            "주인님 오늘 하루는 어떤가요?",
+            "배가 출출할 땐 밥을 탭해보세요!",
+            "코인을 모아서 맛있는 고급 간식을 사줘요!",
+            "하루하루 다르게 몸집이 크고 있어요!",
+            "잠을 잘 자야 성장 진화도가 상승한답니다!"
+        ];
+
+        let currentPet = '';
+        let petLevel = 1; // 1: 아기, 2: 성장기, 3: 성체
+        let days = 1;
+        let coins = 100;
+        let stats = {
+            hunger: 50,
+            happiness: 50,
+            energy: 50
+        };
+        
+        let gameInterval;
+        let speechInterval;
+
+        // 커스텀 모달 제어용
+        let alertCallback = null;
+
+        function showAlert(msg, title = "📢 알림", callback = null) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-message').innerText = msg;
+            document.getElementById('alert-modal').classList.remove('hidden');
+            alertCallback = callback;
+        }
+
+        function closeAlert() {
+            document.getElementById('alert-modal').classList.add('hidden');
+            if (alertCallback) {
+                alertCallback();
+                alertCallback = null;
+            }
+        }
+
+        function startGame(petName) {
+            currentPet = petName;
+            petLevel = 1;
+            days = 1;
+            coins = 100;
+            stats = { hunger: 60, happiness: 60, energy: 60 };
+
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+
+            updateUI();
+            startLoops();
+            showBubble("야호! 저를 선택해주셨군요!");
+        }
+
+        function startLoops() {
+            if (gameInterval) clearInterval(gameInterval);
+            if (speechInterval) clearInterval(speechInterval);
+
+            // 4초마다 스펙 감쇄
+            gameInterval = setInterval(() => {
+                stats.hunger = Math.max(0, stats.hunger - 3);
+                stats.happiness = Math.max(0, stats.happiness - 2);
+                stats.energy = Math.max(0, stats.energy - 2);
+                
+                // 하루 증가 확률
+                if (Math.random() < 0.15) {
+                    days += 1;
+                    coins += 10; // 일일 기본 수당 보상
+                    checkEvolution();
+                }
+
+                updateUI();
+                checkGameOver();
+            }, 4000);
+
+            // 랜덤 말풍선 띄우기
+            speechInterval = setInterval(() => {
+                if (Math.random() < 0.4) {
+                    const randomSaying = PET_SAYINGS[Math.floor(Math.random() * PET_SAYINGS.length)];
+                    showBubble(randomSaying);
+                }
+            }, 8000);
+        }
+
+        function updateUI() {
+            // 이름과 일수 갱신
+            const levelText = petLevel === 1 ? '아기 (Lv.1)' : (petLevel === 2 ? '청소년기 (Lv.2)' : '성체 (Lv.3)');
+            document.getElementById('pet-name').innerText = `내 사랑 ${currentPet}`;
+            document.getElementById('game-days').innerText = days;
+            document.getElementById('game-coins').innerText = coins;
+            document.getElementById('evo-stage').innerText = levelText;
+
+            // 바 애니메이션 너비 설정
+            document.getElementById('hunger-fill').style.width = stats.hunger + '%';
+            document.getElementById('happiness-fill').style.width = stats.happiness + '%';
+            document.getElementById('energy-fill').style.width = stats.energy + '%';
+
+            // 바 텍스트 표기
+            document.getElementById('hunger-text').innerText = `${stats.hunger} / 100`;
+            document.getElementById('happiness-text').innerText = `${stats.happiness} / 100`;
+            document.getElementById('energy-text').innerText = `${stats.energy} / 100`;
+
+            // 그래픽 출력
+            const graphicsSet = PET_GRAPHICS[currentPet];
+            let currentSvg = graphicsSet.lvl1;
+            if (petLevel === 2) currentSvg = graphicsSet.lvl2;
+            if (petLevel === 3) currentSvg = graphicsSet.lvl3;
+
+            document.getElementById('pet-display-box').innerHTML = currentSvg;
+        }
+
+        function showBubble(text) {
+            const bubble = document.getElementById('pet-bubble');
+            bubble.innerText = text;
+            bubble.style.opacity = '1';
+            setTimeout(() => {
+                bubble.style.opacity = '0';
+            }, 3000);
+        }
+
+        function checkEvolution() {
+            if (days >= 8 && petLevel === 2) {
+                petLevel = 3;
+                showAlert(`🎊 축하합니다! ${currentPet}(이)가 드디어 완벽한 [성체]로 진화했습니다!`, "🧬 진화 대성공");
+                showBubble("저 이제 다 컸어요! 든든하죠?");
+            } else if (days >= 4 && petLevel === 1) {
+                petLevel = 2;
+                showAlert(`🎉 축하합니다! ${currentPet}(이)가 무럭무럭 자라 [청소년기]로 진화했습니다!`, "🧬 진화 성공");
+                showBubble("헤헤, 몸이 좀 커진 것 같아요!");
+            }
+        }
+
+        function feedMenu() {
+            document.getElementById('feed-modal').classList.remove('hidden');
+        }
+
+        function closeFeedMenu() {
+            document.getElementById('feed-modal').classList.add('hidden');
+        }
+
+        function buyFood(foodName, cost, hungerRestore, energyTax) {
+            if (coins < cost) {
+                showAlert("코인이 부족합니다! 미니게임 알바를 통해 코인을 벌어오세요.", "💰 코인 부족");
+                return;
+            }
+
+            if (stats.hunger >= 100) {
+                showAlert("이미 포만감이 꽉 차서 더 먹을 수 없습니다!", "🍖 거절");
+                return;
+            }
+
+            coins -= cost;
+            stats.hunger = Math.min(100, stats.hunger + hungerRestore);
+            stats.energy = Math.max(0, stats.energy + energyTax);
+            
+            closeFeedMenu();
+            updateUI();
+            
+            // 갉아먹는 액션 애니메이션 트리거
+            const petBox = document.getElementById('pet-display-box');
+            petBox.classList.remove('float-animation');
+            petBox.classList.add('eat-animation');
+            setTimeout(() => {
+                petBox.classList.remove('eat-animation');
+                petBox.classList.add('float-animation');
+            }, 600);
+
+            showBubble(`냠냠! ${foodName}(을)를 너무 맛있게 먹었습니다!`);
+        }
+
+        function playWithPet() {
+            if (stats.energy < 20) {
+                showAlert("에너지가 부족하여 놀아줄 수 없습니다! 펫을 재우고 오세요.", "⚡ 체력 방전");
+                return;
+            }
+
+            stats.happiness = Math.min(100, stats.happiness + 20);
+            stats.energy = Math.max(0, stats.energy - 15);
+            stats.hunger = Math.max(0, stats.hunger - 10);
+            
+            // 행운의 코인 발견 확률
+            let rewardMsg = "";
+            if (Math.random() < 0.4) {
+                const bonusCoins = Math.floor(Math.random() * 15) + 5;
+                coins += bonusCoins;
+                rewardMsg = ` 산책 중에 ${bonusCoins}G 도 발견했습니다!`;
+            }
+
+            updateUI();
+            showBubble("주인님과 노는 시간이 제일 행복해요! 😊" + rewardMsg);
+        }
+
+        function sleepPet() {
+            if (stats.energy >= 100) {
+                showAlert("잠을 더 자고 싶지 않아 합니다! 에너지가 충분합니다.", "💤 생생함");
+                return;
+            }
+
+            stats.energy = Math.min(100, stats.energy + 40);
+            stats.hunger = Math.max(0, stats.hunger - 15); // 자면서 약간의 소화
+            
+            // 자고 나면 미세하게 늘어나는 진화 진척율
+            if (Math.random() < 0.5) {
+                days += 1;
+                checkEvolution();
+            }
+
+            updateUI();
+            showBubble("쿨쿨... 푹 자고 일어났더니 힘이 솟구쳐요! ⚡");
+        }
+
+        let miniGameActive = false;
+        let currentTarget = "LEFT";
+        let remainingTurns = 10;
+        let successfulTurns = 0;
+
+        function startMiniGame() {
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('minigame-screen').classList.remove('hidden');
+            
+            miniGameActive = true;
+            remainingTurns = 10;
+            successfulTurns = 0;
+            
+            nextPattern();
+        }
+
+        function nextPattern() {
+            if (remainingTurns <= 0) {
+                endMiniGame();
+                return;
+            }
+
+            document.getElementById('game-turns').innerText = remainingTurns;
+            
+            // 무작위 좌우 방향 결정
+            const rand = Math.random() < 0.5;
+            currentTarget = rand ? "LEFT" : "RIGHT";
+            
+            const targetVisual = rand ? "◀ LEFT" : "RIGHT ▶";
+            const targetColor = rand ? "text-amber-400" : "text-sky-400";
+
+            const targetElement = document.getElementById('target-pattern');
+            targetElement.className = `text-3xl font-englishPixel text-center tracking-wider my-4 ${targetColor}`;
+            targetElement.innerText = targetVisual;
+        }
+
+        function pressKey(direction) {
+            if (!miniGameActive) return;
+
+            const feedback = document.getElementById('game-feedback');
+            if (direction === currentTarget) {
+                successfulTurns++;
+                feedback.innerText = "⭐ 나이스 밟기! (+5G)";
+                feedback.className = "text-xs text-emerald-400 font-bold";
+            } else {
+                feedback.innerText = "❌ 헛디딤! (보상 없음)";
+                feedback.className = "text-xs text-red-400 font-bold";
+            }
+
+            remainingTurns--;
+            nextPattern();
+        }
+
+        function endMiniGame() {
+            miniGameActive = false;
+            const reward = successfulTurns * 6; // 한 턴당 6G 획득
+            coins += reward;
+
+            document.getElementById('minigame-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+
+            showAlert(`아르바이트 성공! ${successfulTurns}회 콤보를 성공하여 총 ${reward}G를 획득했습니다!`, "🎮 알바 종료", () => {
+                updateUI();
+                showBubble(`열심히 일해 코인을 벌어다 주셔서 감사합니다!`);
+            });
+        }
+
+        function exitMiniGame() {
+            miniGameActive = false;
+            document.getElementById('minigame-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            updateUI();
+        }
+
+        function showInfo() {
+            document.getElementById('info-title').innerText = `📖 [${currentPet}] 종의 유래`;
+            document.getElementById('info-desc').innerText = PET_INFOS[currentPet] || "알려진 정보가 없습니다.";
+            document.getElementById('info-modal').classList.remove('hidden');
+        }
+
+        function closeInfo() {
+            document.getElementById('info-modal').classList.add('hidden');
+        }
+
+        function checkGameOver() {
+            if (stats.hunger <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(speechInterval);
+                showAlert(`${currentPet}(이)가 너무나 극심한 굶주림을 이기지 못하고 숲으로 돌아갔습니다...`, "😢 게임 오버", () => {
+                    location.reload();
+                });
+            } else if (stats.happiness <= 0) {
+                clearInterval(gameInterval);
+                clearInterval(speechInterval);
+                showAlert(`${currentPet}(이)가 우울하고 슬퍼져서 주인을 떠났습니다... 다음에는 사랑을 더 많이 주세요.`, "😢 게임 오버", () => {
+                    location.reload();
+                });
+            }
+        }
+    </script>
+</body>
+</html>
